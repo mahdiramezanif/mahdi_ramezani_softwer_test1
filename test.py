@@ -1,22 +1,24 @@
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 
-APP_TITLE = "To-Do List v2 - With Timestamp"
+APP_TITLE = "To-Do List v4 - Categories"
 GREEN = "#2eab5f"
 RED = "#e9533d"
 BLUE = "#1787e0"
 PURPLE = "#7e2bd5"
 
+CATEGORIES = ["General", "Home", "Work", "Study", "Shopping"]
+
 class TodoApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(APP_TITLE)
-        self.geometry("600x520")
-        self.minsize(480, 420)
+        self.geometry("640x600")
+        self.minsize(520, 460)
 
-        # memory-only store
-        self.todos = []  # [{"title": str, "done": bool, "ts": str}, ...]
+        self.todos = []  # [{"title": str, "done": bool, "ts": str, "cat": str}]
         self.selected_index = None
 
         self._build_ui()
@@ -28,14 +30,20 @@ class TodoApp(tk.Tk):
 
         top = ttk.Frame(self, padding=(8, 8, 8, 0))
         top.grid(row=0, column=0, sticky="ew")
-        top.columnconfigure(0, weight=1)
+        for i in range(3):
+            top.columnconfigure(i, weight=(1 if i == 0 else 0))
 
         self.entry = ttk.Entry(top)
         self.entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+
+        self.cat = ttk.Combobox(top, values=CATEGORIES, state="readonly", width=12)
+        self.cat.set(CATEGORIES[0])
+        self.cat.grid(row=0, column=1, padx=(0,8))
+
         self.add_btn = tk.Button(top, text="Add Task", bg=GREEN, fg="white",
                                  activebackground=GREEN, relief="flat", padx=14, pady=6,
                                  command=self.add_task)
-        self.add_btn.grid(row=0, column=1)
+        self.add_btn.grid(row=0, column=2)
 
         mid = ttk.Frame(self, padding=8)
         mid.grid(row=1, column=0, sticky="nsew")
@@ -79,16 +87,17 @@ class TodoApp(tk.Tk):
     def _render(self):
         self.listbox.delete(0, tk.END)
         for t in self.todos:
-            prefix = "✔ " if t["done"] else ""
-            line = f"{prefix}{t['title']} - [{t['ts']}]"
+            check = "✔ " if t["done"] else ""
+            line = f"{check}[{t['cat']}] {t['title']}  ({t['ts']})"
             self.listbox.insert(tk.END, line)
 
     def add_task(self):
         title = self.entry.get().strip()
-        if not title: 
+        if not title:
             return
+        cat = self.cat.get() or CATEGORIES[0]
         ts = datetime.now().strftime("%Y-%m-%d %H:%M")
-        self.todos.append({"title": title, "done": False, "ts": ts})
+        self.todos.append({"title": title, "done": False, "ts": ts, "cat": cat})
         self.entry.delete(0, tk.END)
         self._render()
 
